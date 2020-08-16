@@ -1,0 +1,7 @@
+bin/
+obj/
+/packages/
+.idea/
+/Aegis.Rest/ClientApp/
+/Aegis.Service/Aegis.Service.csproj.DotSettings
+/AegisService.sln.DotSettings.user
