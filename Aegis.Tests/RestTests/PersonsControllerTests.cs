@@ -28,7 +28,7 @@ namespace Aegis.Tests.RestTests
 
             PersonInfoDto[] persons = await GetDataAsync<PersonInfoDto[]>(response);
 
-            persons.Length.Should().Be(2);
+            persons.Length.Should().Be(Persons.Length);
 
             string[] expectedNames = Persons.Select(x => x.Name).ToArray();
 

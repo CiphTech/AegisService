@@ -65,8 +65,13 @@ namespace Aegis.Rest
             }
 
             app.UseCors("AllowLocalhost");
+
+            string contentPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp");
+
+            if (!Directory.Exists(contentPath))
+                Directory.CreateDirectory(contentPath);
             
-            var provider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "ClientApp"));
+            var provider = new PhysicalFileProvider(contentPath);
             var defOpt = new DefaultFilesOptions{FileProvider = provider};
             
             app.UseDefaultFiles(defOpt);
