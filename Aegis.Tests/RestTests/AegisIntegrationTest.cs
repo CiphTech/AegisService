@@ -1,11 +1,11 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Aegis.Model;
+using Aegis.Model.Helpers;
 using Aegis.Rest;
 using Aegis.Rest.Dto;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,23 +18,24 @@ namespace Aegis.Tests.RestTests
     {
         protected WebApplicationFactory<Startup> Factory;
         protected AegisPersonInfo[] Persons;
+        protected AegisPersonInfo User;
+        protected IReadOnlyDictionary<Guid, byte[]> PrivateKeys;
 
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
 
         [SetUp]
-        public void SetUp()
+        public async Task SetUp()
         {
-            Persons = new[]
-            {
-                new AegisPersonInfo(Guid.NewGuid(), "Person 1"),
-                new AegisPersonInfo(Guid.NewGuid(), "Person 2")
-            };
+            var personsProvider = TestPersonsProvider.Create(out PrivateKeys);
+
+            Persons = await personsProvider.GetPersonsAsync();
+            User = Persons.First(x => x.Role.EqualsNoCase("user"));
             
             Factory = new WebApplicationFactory<Startup>().WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
-                    services.AddMocks(Persons);
+                    services.AddMocks(personsProvider);
                 });
             });
         }
@@ -59,19 +60,10 @@ namespace Aegis.Tests.RestTests
         protected HttpClient CreateClient()
         {
             HttpClient client = Factory.CreateClient();
+
+            client.DefaultRequestHeaders.Add("client-id", User.Id.ToString("N"));
             
             return client;
-        }
-
-        protected HttpContent CreateJsonContent<T>(T data)
-        {
-            string json = JsonSerializer.Serialize(data, _jsonOptions);
-
-            var content = new StringContent(json);
-            
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-
-            return content;
         }
 
         protected async Task<T> GetDataAsync<T>(HttpResponseMessage response)
@@ -86,26 +78,22 @@ namespace Aegis.Tests.RestTests
         protected async Task<HttpResponseMessage> CreateConversationAsync(CreateConversationSpec spec)
         {
             using HttpClient client = CreateClient();
-
-            using HttpContent content = CreateJsonContent(spec);
-
-            return await client.PostAsync("conversations/create", content);
+            
+            return await client.PostSignedAsync("conversations/create", PrivateKeys[User.Id], spec);
         }
 
         protected async Task<HttpResponseMessage> GetConversationsAsync()
         {
             using HttpClient client = CreateClient();
 
-            return await client.GetAsync("conversations");
+            return await client.GetSignedAsync("conversations", PrivateKeys[User.Id]);
         }
         
         protected async Task<HttpResponseMessage> SendMessageAsync(SendMessageSpec spec)
         {
             using HttpClient client = CreateClient();
-
-            using HttpContent content = CreateJsonContent(spec);
-
-            return await client.PostAsync("messages/send", content);
+            
+            return await client.PostSignedAsync("messages/send", PrivateKeys[User.Id], spec);
         }
 
         protected async Task<HttpResponseMessage> GetMessagesAsync(Guid conversationId, long counter = 0L)
@@ -113,9 +101,9 @@ namespace Aegis.Tests.RestTests
             using HttpClient client = CreateClient();
 
             if (counter > 0L)
-                return await client.GetAsync($"messages/{conversationId:D}?counter={counter}");
+                return await client.GetSignedAsync($"messages/{conversationId:D}?counter={counter}", PrivateKeys[User.Id]);
             else
-                return await client.GetAsync($"messages/{conversationId:D}");
+                return await client.GetSignedAsync($"messages/{conversationId:D}", PrivateKeys[User.Id]);
         }
     }
 }

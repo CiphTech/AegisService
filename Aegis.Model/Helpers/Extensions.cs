@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Aegis.Model.Helpers
 {
@@ -27,5 +28,16 @@ namespace Aegis.Model.Helpers
 
         public static bool IsNullOrEmpty<T>(this ICollection<T> collection) =>
             collection == null || collection.Count == 0;
+
+        public static bool EqualsNoCase(this string self, string other) =>
+            string.Equals(self, other, StringComparison.InvariantCultureIgnoreCase);
+
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> aggregator)
+        {
+            if (!source.Any())
+                return default;
+
+            return source.Aggregate(aggregator);
+        }
     }
 }

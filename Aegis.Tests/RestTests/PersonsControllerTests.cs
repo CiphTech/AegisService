@@ -20,7 +20,7 @@ namespace Aegis.Tests.RestTests
             
             // Act
 
-            HttpResponseMessage response = await client.GetAsync("/persons");
+            HttpResponseMessage response = await client.GetSignedAsync("/persons", PrivateKeys[User.Id]);
             
             // Assert
 
@@ -45,7 +45,7 @@ namespace Aegis.Tests.RestTests
 
             // Act
 
-            HttpResponseMessage response = await client.GetAsync($"persons/{Persons[0].Id:D}");
+            HttpResponseMessage response = await client.GetSignedAsync($"persons/{Persons[0].Id:D}", PrivateKeys[User.Id]);
 
             // Assert
 

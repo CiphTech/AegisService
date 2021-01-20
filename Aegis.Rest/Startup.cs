@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 using System.Text;
+using Aegis.Rest.Middleware;
 using Aegis.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,8 +30,6 @@ namespace Aegis.Rest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            const string key = "0EB6F44F-B0E0-47E9-A7BC-BD2460ACD468";
-
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = true;
@@ -39,7 +39,7 @@ namespace Aegis.Rest
                     ValidIssuer = "AEGISAPP",
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Guid.NewGuid().ToString("D")))
                 };
             });
             services.AddAuthorization();
@@ -80,6 +80,8 @@ namespace Aegis.Rest
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseMiddleware<AegisAuthMiddleware>();
 
             app.UseAuthorization();
 

@@ -16,15 +16,11 @@ namespace Aegis.Tests.Unit
         private Mock<IAegisMessageStorage> _msgStorageMock;
         
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             var personProvider = new Mock<IAegisInitPersonsProvider>(MockBehavior.Strict);
 
-            _persons = new[]
-            {
-                new AegisPersonInfo(Guid.NewGuid(), "Test1"),
-                new AegisPersonInfo(Guid.NewGuid(), "Test2") 
-            };
+            _persons = await new DummyInitPersonsProvider().GetPersonsAsync();
 
             personProvider.Setup(x => x.GetPersonsAsync()).ReturnsAsync(_persons);
             
@@ -90,11 +86,7 @@ namespace Aegis.Tests.Unit
         {
             // Arrange
 
-            AegisPersonInfo[] persons =
-            {
-                new AegisPersonInfo(Guid.NewGuid(), "Person1"),
-                new AegisPersonInfo(Guid.NewGuid(), "Person2")
-            };
+            AegisPersonInfo[] persons = await new DummyInitPersonsProvider().GetPersonsAsync();
             
             // Act
 
@@ -314,11 +306,7 @@ namespace Aegis.Tests.Unit
             // Arrange
             var personProvider = new Mock<IAegisInitPersonsProvider>(MockBehavior.Strict);
 
-            var persons = new[]
-            {
-                new AegisPersonInfo(Guid.NewGuid(), "Test1"),
-                new AegisPersonInfo(Guid.NewGuid(), "Test2") 
-            };
+            var persons = await new DummyInitPersonsProvider().GetPersonsAsync();
 
             personProvider.Setup(x => x.GetPersonsAsync()).ReturnsAsync(persons);
             
