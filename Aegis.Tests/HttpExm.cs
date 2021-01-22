@@ -60,19 +60,12 @@ namespace Aegis.Tests
             
             if (request.Method == HttpMethod.Post)
             {
-                Stream stream = request.Content.ReadAsStreamAsync().Result;
-
-                using (StreamReader reader = new StreamReader(stream, leaveOpen: true))
+                using (StreamReader reader = new StreamReader(request.Content.ReadAsStreamAsync().Result, leaveOpen: true))
                 {
-                    string tmp = reader.ReadToEnd();
+                    string body = reader.ReadToEnd();
+                    byte[] hash = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(body));
+                    bodyHash = $"|{Convert.ToBase64String(hash)}";
                 }
-
-                stream.Position = 0;
-                
-                byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, (int) stream.Length);
-                byte[] hash = SHA256.Create().ComputeHash(buffer);
-                bodyHash = $"|{Convert.ToBase64String(hash)}";
             }
             
             string strToSign = $"{url}{bodyHash}|{headers}".Trim('/');

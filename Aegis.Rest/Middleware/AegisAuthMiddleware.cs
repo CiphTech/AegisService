@@ -63,12 +63,10 @@ namespace Aegis.Rest.Middleware
 
                 using (StreamReader reader = new StreamReader(context.Request.Body, leaveOpen: true))
                 {
-                    string tmp = await reader.ReadToEndAsync();
-                    context.Request.Body.Position = 0;
+                    string body = await reader.ReadToEndAsync();
+                    byte[] hash = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(body));
+                    bodyHash = $"|{Convert.ToBase64String(hash)}";
                 }
-
-                byte[] hash = SHA256.Create().ComputeHash(context.Request.Body);
-                bodyHash = $"|{Convert.ToBase64String(hash)}";
 
                 context.Request.Body.Position = 0;
             }
