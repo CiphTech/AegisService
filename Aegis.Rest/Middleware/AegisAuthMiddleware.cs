@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -54,7 +55,25 @@ namespace Aegis.Rest.Middleware
                 .Select(x => $"{x.Key}:{x.Value.AggregateOrDefault((all, x) => $"{all},{x}")}")
                 .AggregateOrDefault((all, x) => $"{all}|{x}");
 
-            string strToSign = $"{context.Request.Path}{context.Request.QueryString}|{headers}".Trim('/');
+            string bodyHash = null;
+
+            if (context.Request.Method.EqualsNoCase("POST"))
+            {
+                context.Request.EnableBuffering();
+
+                using (StreamReader reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    string tmp = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                byte[] hash = SHA256.Create().ComputeHash(context.Request.Body);
+                bodyHash = $"|{Convert.ToBase64String(hash)}";
+
+                context.Request.Body.Position = 0;
+            }
+            
+            string strToSign = $"{context.Request.Path}{context.Request.QueryString}{bodyHash}|{headers}".Trim('/');
             
             AegisPersonInfo person = (await _personsProvider.GetPersonsAsync()).FirstOrDefault(x => x.Id == clientId);
 
@@ -67,8 +86,8 @@ namespace Aegis.Rest.Middleware
                 else
                 {
                     context.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+                    context.Response.Headers.Add("str", strToSign);
                     await context.Response.WriteAsync("Authorization failed");
-                    // context.Response.Headers.Add("str", strToSign);
                     return;
                 }
             }

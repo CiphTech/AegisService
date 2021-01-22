@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -29,22 +30,22 @@ namespace Aegis.Tests
             HttpContent content = CreateJsonContent(data);
             
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-
-            request.AddSignature(client, url, privateKey);
-
+            
             request.Content = content;
+            
+            request.AddSignature(client, url, privateKey);
 
             return await client.SendAsync(request);
         }
 
-        private static void AddSignature(this HttpRequestMessage request, HttpClient client, string url, byte[] key)
+        public static void AddSignature(this HttpRequestMessage request, HttpClient client, string url, byte[] key)
         {
-            string signature = CalcSignature(client, url, key);
+            string signature = CalcSignature(request, client, url, key);
 
             request.Headers.Add("Signature", signature);
         }
 
-        private static string CalcSignature(HttpClient client, string url, byte[] key)
+        private static string CalcSignature(HttpRequestMessage request, HttpClient client, string url, byte[] key)
         {
             using var provider = new RSACryptoServiceProvider();
             
@@ -55,14 +56,33 @@ namespace Aegis.Tests
                 .Select(x => $"{x.Key}:{x.Value.AggregateOrDefault((all, x) => $"{all},{x}")}")
                 .AggregateOrDefault((all, x) => $"{all}|{x}");
 
-            string strToSign = $"{url}|{headers}".Trim('/');
+            string bodyHash = null;
+            
+            if (request.Method == HttpMethod.Post)
+            {
+                Stream stream = request.Content.ReadAsStreamAsync().Result;
+
+                using (StreamReader reader = new StreamReader(stream, leaveOpen: true))
+                {
+                    string tmp = reader.ReadToEnd();
+                }
+
+                stream.Position = 0;
+                
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, (int) stream.Length);
+                byte[] hash = SHA256.Create().ComputeHash(buffer);
+                bodyHash = $"|{Convert.ToBase64String(hash)}";
+            }
+            
+            string strToSign = $"{url}{bodyHash}|{headers}".Trim('/');
             
             byte[] signature = provider.SignData(Encoding.UTF8.GetBytes(strToSign), SHA256.Create());
 
             return Convert.ToBase64String(signature);
         }
-        
-        private static HttpContent CreateJsonContent<T>(T data)
+
+        public static HttpContent CreateJsonContent<T>(T data)
         {
             string json = JsonSerializer.Serialize(data, JsonOptions);
 

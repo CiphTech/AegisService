@@ -19,6 +19,7 @@ namespace Aegis.Tests.RestTests
         protected WebApplicationFactory<Startup> Factory;
         protected AegisPersonInfo[] Persons;
         protected AegisPersonInfo User;
+        protected AegisPersonInfo Admin;
         protected IReadOnlyDictionary<Guid, byte[]> PrivateKeys;
 
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
@@ -30,6 +31,7 @@ namespace Aegis.Tests.RestTests
 
             Persons = await personsProvider.GetPersonsAsync();
             User = Persons.First(x => x.Role.EqualsNoCase("user"));
+            Admin = Persons.First(x => x.Role.EqualsNoCase("admin"));
             
             Factory = new WebApplicationFactory<Startup>().WithWebHostBuilder(builder =>
             {
