@@ -81,7 +81,7 @@ namespace Aegis.Tests.RestTests
         {
             using HttpClient client = CreateClient();
             
-            return await client.PostSignedAsync("conversations/create", PrivateKeys[User.Id], spec);
+            return await client.PostSignedAsync("conversations", PrivateKeys[User.Id], spec);
         }
 
         protected async Task<HttpResponseMessage> GetConversationsAsync()

@@ -13,7 +13,7 @@ namespace Aegis.Rest.Controllers
     {
         private readonly IAegisService _aegisService;
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ConversationDto> CreateConversation([FromBody] CreateConversationSpec spec)
         {
             var info = new AegisConversationInfo(Guid.NewGuid(), spec.Admin, spec.Participants, spec.Title);
