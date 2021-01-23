@@ -6,9 +6,7 @@ namespace Aegis.Rest.Dto
     public class SendMessageSpec
     {
         public Guid ConversationId { get; set; }
-
-        public Guid SentBy { get; set; }
-
+        
         public string Title { get; set; }
 
         public string Body { get; set; }

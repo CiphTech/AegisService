@@ -44,12 +44,23 @@ namespace Aegis.Service
                 return inMemoryMessages.Concat(stgMessages).ToArray();
         }
 
+        public Task<bool> ConversationHasParticipant(Guid conversationId, Guid personId)
+        {
+            return GetConversation(conversationId).HasParticipantAsync(personId);
+        }
+
         public async Task<MicInfo> SendMessageAsync(AegisMessageInfo info)
         {
-            if (!_conversations.TryGetValue(info.ConversationId, out AegisConversation conversation))
-                throw new Exception($"Conversation '{info.ConversationId:D}' is not found");
+            AegisConversation conversation = GetConversation(info.ConversationId);
             
             return await conversation.SendMessage(info);
+        }
+
+        private AegisConversation GetConversation(Guid conversationId)
+        {
+            if (!_conversations.TryGetValue(conversationId, out AegisConversation conversation))
+                throw new Exception($"Conversation '{conversationId:D}' is not found");
+            return conversation;
         }
 
         public async Task CreateConversationAsync(AegisConversationInfo info)

@@ -29,7 +29,6 @@ namespace Aegis.Tests.RestTests
             var sendMsgSpec = new SendMessageSpec
             {
                 ConversationId = conv.Id,
-                SentBy = Persons[0].Id,
                 Title = "Title",
                 Body = "Body"
             };
@@ -48,7 +47,6 @@ namespace Aegis.Tests.RestTests
             dt.Should().BeWithin(TimeSpan.FromMinutes(1)).Before(DateTime.UtcNow);
 
             msg.ConversationId.Should().Be(conv.Id);
-            msg.SentBy.Should().Be(sendMsgSpec.SentBy);
             msg.Title.Should().Be(sendMsgSpec.Title);
             msg.Body.Should().Be(sendMsgSpec.Body);
         }
@@ -67,7 +65,7 @@ namespace Aegis.Tests.RestTests
 
             // Act
 
-            var spec = new SendMessageSpec {ConversationId = conv.Id, SentBy = Persons[0].Id, Title = "Title", Body = "Body"};
+            var spec = new SendMessageSpec {ConversationId = conv.Id, Title = "Title", Body = "Body"};
 
             HttpResponseMessage[] sendResponses = await Task.WhenAll(SendMessageAsync(spec), SendMessageAsync(spec));
             sendResponses.Select(x => x.EnsureSuccessStatusCode()).ToArray();
@@ -85,7 +83,7 @@ namespace Aegis.Tests.RestTests
                 dto.Id.Should().NotBeEmpty();
                 dto.Counter.Should().BeGreaterThan(0L);
                 dto.ConversationId.Should().Be(conv.Id);
-                dto.SentBy.Should().Be(Persons[0].Id);
+                dto.SentBy.Should().Be(User.Id);
                 dto.Title.Should().Be("Title");
                 dto.Body.Should().Be("Body");
             }
@@ -104,10 +102,10 @@ namespace Aegis.Tests.RestTests
             ConversationDto conv = await GetDataAsync<ConversationDto>(createConvResponse);
 
             // Act
-            var spec = new SendMessageSpec {ConversationId = conv.Id, SentBy = Persons[0].Id, Title = "Title", Body = "Body"};
+            var spec = new SendMessageSpec {ConversationId = conv.Id, Title = "Title", Body = "Body"};
 
             HttpResponseMessage[] sendResponses = await Task.WhenAll(SendMessageAsync(spec), SendMessageAsync(spec));
-            sendResponses.Select(x => x.EnsureSuccessStatusCode());
+            sendResponses.Select(x => x.EnsureSuccessStatusCode()).ToList();
 
             HttpResponseMessage getResponse = await GetMessagesAsync(conv.Id, 1L);
             MessageDto[] messages = await GetDataAsync<MessageDto[]>(getResponse);
@@ -120,9 +118,31 @@ namespace Aegis.Tests.RestTests
             messages[0].Id.Should().NotBeEmpty();
             messages[0].Counter.Should().Be(2L);
             messages[0].ConversationId.Should().Be(conv.Id);
-            messages[0].SentBy.Should().Be(Persons[0].Id);
+            messages[0].SentBy.Should().Be(User.Id);
             messages[0].Title.Should().Be("Title");
             messages[0].Body.Should().Be("Body");
+        }
+
+        [Test]
+        public async Task SendMessage_NotAParticipant_Returns400()
+        {
+            // Arrange
+
+            var spec = new CreateConversationSpec {Admin = Admin.Id, Title = "Test conv", Participants = new[] {Admin.Id}};
+
+            HttpResponseMessage createConvResponse = await CreateConversationAsync(spec);
+
+            var conv = await GetDataAsync<ConversationDto>(createConvResponse);
+
+            // Act
+
+            HttpResponseMessage sendResponse = await SendMessageAsync(new SendMessageSpec {Body = "Msg", ConversationId = conv.Id, Title = "Test"});
+
+            // Assert
+
+            sendResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            string content = await sendResponse.Content.ReadAsStringAsync();
+            content.Should().Be($"You're not a participant of conversation '{conv.Id:D}'");
         }
     }
 }

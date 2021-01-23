@@ -6,9 +6,7 @@ namespace Aegis.Model
     {
         public Guid Id { get; }
         public Guid Admin { get; }
-
         public Guid[] Participants { get; }
-
         public string Title { get; }
 
         public AegisConversationInfo(Guid id, Guid admin, Guid[] participants, string title)

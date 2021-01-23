@@ -15,9 +15,12 @@ namespace Aegis.Rest.Controllers
         private readonly IAegisService _aegisService;
 
         [HttpPost("send")]
-        public async Task<MessageDto> SendMessage([FromBody] SendMessageSpec spec)
+        public async Task<ActionResult<MessageDto>> SendMessage([FromBody] SendMessageSpec spec, [FromHeader(Name = "client-id")] Guid clientId)
         {
-            var msg = new AegisMessageInfo(Guid.NewGuid(), spec.ConversationId, spec.SentBy, spec.Title, spec.Body);
+            if (!await _aegisService.ConversationHasParticipant(spec.ConversationId, clientId))
+                return BadRequest($"You're not a participant of conversation '{spec.ConversationId:D}'");
+            
+            var msg = new AegisMessageInfo(Guid.NewGuid(), spec.ConversationId, clientId, spec.Title, spec.Body);
             MicInfo mic = await _aegisService.SendMessageAsync(msg);
 
             MessageDto dto = CreateDto(mic);
