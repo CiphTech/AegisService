@@ -53,7 +53,7 @@ namespace Aegis.Tests.RestTests
 
             using HttpClient client = CreateClient();
             HttpContent content = HttpExm.CreateJsonContent(new CreateConversationSpec {Admin = User.Id, Participants = new[] {Admin.Id, User.Id}, Title = "Test"});
-            var url = "conversations/create";
+            var url = "conversations";
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url){Content = content};
             request.AddSignature(client, url, PrivateKeys[User.Id]);
 
