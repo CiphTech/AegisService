@@ -96,7 +96,7 @@ namespace Aegis.Tests.RestTests
         {
             using HttpClient client = CreateClient();
             
-            return await client.PostSignedAsync("messages/send", PrivateKeys[User.Id], spec);
+            return await client.PostSignedAsync("messages", PrivateKeys[User.Id], spec);
         }
 
         protected async Task<HttpResponseMessage> GetMessagesAsync(Guid conversationId, long counter = 0L)

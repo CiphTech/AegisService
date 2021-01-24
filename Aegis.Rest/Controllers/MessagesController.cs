@@ -14,7 +14,7 @@ namespace Aegis.Rest.Controllers
     {
         private readonly IAegisService _aegisService;
 
-        [HttpPost("send")]
+        [HttpPost]
         public async Task<ActionResult<MessageDto>> SendMessage([FromBody] SendMessageSpec spec, [FromHeader(Name = "client-id")] Guid clientId)
         {
             if (!_aegisService.ConversationHasParticipant(spec.ConversationId, clientId))
@@ -29,7 +29,7 @@ namespace Aegis.Rest.Controllers
         }
 
         [HttpGet("{conversationId:guid}")]
-        public async Task<MessageDto[]> GetMessages(Guid conversationId,[FromQuery] long counter)
+        public async Task<MessageDto[]> GetMessages(Guid conversationId, [FromQuery] long counter)
         {
             MicInfo[] messages = await _aegisService.GetMessagesAsync(conversationId, counter);
 
