@@ -17,8 +17,8 @@ namespace Aegis.Rest.Controllers
         [HttpPost("send")]
         public async Task<ActionResult<MessageDto>> SendMessage([FromBody] SendMessageSpec spec, [FromHeader(Name = "client-id")] Guid clientId)
         {
-            if (!await _aegisService.ConversationHasParticipant(spec.ConversationId, clientId))
-                return BadRequest($"You're not a participant of conversation '{spec.ConversationId:D}'");
+            if (!_aegisService.ConversationHasParticipant(spec.ConversationId, clientId))
+                return NotFound($"Conversation '{spec.ConversationId:D}' was not found");
             
             var msg = new AegisMessageInfo(Guid.NewGuid(), spec.ConversationId, clientId, spec.Title, spec.Body);
             MicInfo mic = await _aegisService.SendMessageAsync(msg);

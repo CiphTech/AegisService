@@ -124,13 +124,13 @@ namespace Aegis.Tests.RestTests
         }
 
         [Test]
-        public async Task SendMessage_NotAParticipant_Returns400()
+        public async Task SendMessage_NotAParticipant_Returns404()
         {
             // Arrange
 
             var spec = new CreateConversationSpec {Admin = Admin.Id, Title = "Test conv", Participants = new[] {Admin.Id}};
 
-            HttpResponseMessage createConvResponse = await CreateConversationAsync(spec);
+            HttpResponseMessage createConvResponse = await CreateConversationAsync(spec, Admin.Id);
 
             var conv = await GetDataAsync<ConversationDto>(createConvResponse);
 
@@ -140,9 +140,9 @@ namespace Aegis.Tests.RestTests
 
             // Assert
 
-            sendResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            sendResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
             string content = await sendResponse.Content.ReadAsStringAsync();
-            content.Should().Be($"You're not a participant of conversation '{conv.Id:D}'");
+            content.Should().ContainEquivalentOf($"conversation '{conv.Id:D}'");
         }
     }
 }

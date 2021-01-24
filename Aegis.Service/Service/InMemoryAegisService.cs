@@ -44,9 +44,9 @@ namespace Aegis.Service
                 return inMemoryMessages.Concat(stgMessages).ToArray();
         }
 
-        public Task<bool> ConversationHasParticipant(Guid conversationId, Guid personId)
+        public bool ConversationHasParticipant(Guid conversationId, Guid personId)
         {
-            return GetConversation(conversationId).HasParticipantAsync(personId);
+            return GetConversation(conversationId).HasParticipant(personId);
         }
 
         public async Task<MicInfo> SendMessageAsync(AegisMessageInfo info)

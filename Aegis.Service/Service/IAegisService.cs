@@ -12,7 +12,7 @@ namespace Aegis.Service
 
         Task<MicInfo[]> GetMessagesAsync(Guid conversationId, long counter);
 
-        Task<bool> ConversationHasParticipant(Guid conversationId, Guid personId);
+        bool ConversationHasParticipant(Guid conversationId, Guid personId);
 
         Task<MicInfo> SendMessageAsync(AegisMessageInfo info);
 

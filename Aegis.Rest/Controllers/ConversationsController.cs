@@ -14,9 +14,9 @@ namespace Aegis.Rest.Controllers
         private readonly IAegisService _aegisService;
 
         [HttpPost]
-        public async Task<ConversationDto> CreateConversation([FromBody] CreateConversationSpec spec)
+        public async Task<ConversationDto> CreateConversation([FromBody] CreateConversationSpec spec, [FromHeader(Name = "client-id")] Guid clientId)
         {
-            var info = new AegisConversationInfo(Guid.NewGuid(), spec.Admin, spec.Participants, spec.Title);
+            var info = new AegisConversationInfo(Guid.NewGuid(), clientId, spec.Participants, spec.Title);
             await _aegisService.CreateConversationAsync(info);
 
             return new ConversationDto
@@ -28,11 +28,13 @@ namespace Aegis.Rest.Controllers
         }
 
         [HttpGet]
-        public async Task<ConversationDto[]> GetAllConversations()
+        public async Task<ConversationDto[]> GetAllConversations([FromHeader(Name = "client-id")] Guid userId)
         {
             AegisConversationInfo[] info = await _aegisService.GetConversationsAsync();
 
-            return info.Select(x => new ConversationDto
+            return info
+                .Where(x => _aegisService.ConversationHasParticipant(x.Id, userId))
+                .Select(x => new ConversationDto
                 {
                     Id = x.Id,
                     Participants = x.Participants,

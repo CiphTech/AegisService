@@ -23,14 +23,14 @@ namespace Aegis.Service
 
         public MicInfo[] GetMessages(long counter) => GetMessagesByCounter(counter);
 
-        public async Task<bool> HasParticipantAsync(Guid id) => Info.Participants.Contains(id);
+        public bool HasParticipant(Guid id) => Info.Participants.Contains(id);
 
         public async Task<MicInfo> SendMessage(AegisMessageInfo info)
         {
             if (_messages.Values.Any(x => x.Message.Id == info.Id))
                 throw new Exception($"Cannot send message '{info.Id:D}' twice");
             
-            if (!await HasParticipantAsync(info.SentBy))
+            if (!HasParticipant(info.SentBy))
                 throw new Exception($"Conversation '{Info.Id}' doesn't contain participant '{info.SentBy}'");
 
             var mic = new MicInfo(info, DateTime.UtcNow, GetCounter());

@@ -19,6 +19,7 @@ namespace Aegis.Tests.RestTests
         protected WebApplicationFactory<Startup> Factory;
         protected AegisPersonInfo[] Persons;
         protected AegisPersonInfo User;
+        protected AegisPersonInfo User2;
         protected AegisPersonInfo Admin;
         protected IReadOnlyDictionary<Guid, byte[]> PrivateKeys;
 
@@ -30,8 +31,9 @@ namespace Aegis.Tests.RestTests
             var personsProvider = TestPersonsProvider.Create(out PrivateKeys);
 
             Persons = await personsProvider.GetPersonsAsync();
-            User = Persons.First(x => x.Role.EqualsNoCase("user"));
-            Admin = Persons.First(x => x.Role.EqualsNoCase("admin"));
+            Admin = Persons.First(x => x.Name.EqualsNoCase("Yoba Admin"));
+            User = Persons.First(x => x.Name.EqualsNoCase("Yoba 1"));
+            User2 = Persons.First(x => x.Name.EqualsNoCase("Yoba 2"));
             
             Factory = new WebApplicationFactory<Startup>().WithWebHostBuilder(builder =>
             {
@@ -59,11 +61,11 @@ namespace Aegis.Tests.RestTests
             };
         }
 
-        protected HttpClient CreateClient()
+        protected HttpClient CreateClient(Guid? userId = null)
         {
             HttpClient client = Factory.CreateClient();
 
-            client.DefaultRequestHeaders.Add("client-id", User.Id.ToString("N"));
+            client.DefaultRequestHeaders.Add("client-id", (userId ?? User.Id).ToString("N"));
             
             return client;
         }
@@ -77,18 +79,18 @@ namespace Aegis.Tests.RestTests
             return JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
 
-        protected async Task<HttpResponseMessage> CreateConversationAsync(CreateConversationSpec spec)
+        protected async Task<HttpResponseMessage> CreateConversationAsync(CreateConversationSpec spec, Guid? userId = null)
         {
-            using HttpClient client = CreateClient();
+            using HttpClient client = CreateClient(userId);
             
-            return await client.PostSignedAsync("conversations", PrivateKeys[User.Id], spec);
+            return await client.PostSignedAsync("conversations", PrivateKeys[userId ?? User.Id], spec);
         }
 
-        protected async Task<HttpResponseMessage> GetConversationsAsync()
+        protected async Task<HttpResponseMessage> GetConversationsAsync(Guid? userId = null)
         {
-            using HttpClient client = CreateClient();
+            using HttpClient client = CreateClient(userId);
 
-            return await client.GetSignedAsync("conversations", PrivateKeys[User.Id]);
+            return await client.GetSignedAsync("conversations", PrivateKeys[userId ?? User.Id]);
         }
         
         protected async Task<HttpResponseMessage> SendMessageAsync(SendMessageSpec spec)
