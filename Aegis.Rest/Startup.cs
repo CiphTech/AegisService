@@ -53,7 +53,6 @@ namespace Aegis.Rest
             services.AddControllers();
             services.AddSingleton<IAegisService, InMemoryAegisService>();
             services.AddSingleton<IAegisInitPersonsProvider, DummyInitPersonsProvider>();
-            services.AddSingleton<IAegisMessageStorage, DummyMessageStorage>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -306,7 +306,7 @@ namespace Aegis.Tests.Unit
             // Arrange
             var personProvider = new Mock<IAegisInitPersonsProvider>(MockBehavior.Strict);
 
-            var persons = await new DummyInitPersonsProvider().GetPersonsAsync();
+            var persons = await TestPersonsProvider.Create(out _).GetPersonsAsync();
 
             personProvider.Setup(x => x.GetPersonsAsync()).ReturnsAsync(persons);
             
