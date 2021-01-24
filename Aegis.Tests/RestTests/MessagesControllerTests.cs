@@ -128,7 +128,7 @@ namespace Aegis.Tests.RestTests
         {
             // Arrange
 
-            var spec = new CreateConversationSpec {Admin = Admin.Id, Title = "Test conv", Participants = new[] {Admin.Id}};
+            var spec = new CreateConversationSpec {Title = "Test conv", Participants = new[] {Admin.Id}};
 
             HttpResponseMessage createConvResponse = await CreateConversationAsync(spec, Admin.Id);
 

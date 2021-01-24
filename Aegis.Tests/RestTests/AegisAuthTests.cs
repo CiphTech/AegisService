@@ -52,14 +52,14 @@ namespace Aegis.Tests.RestTests
             // Arrange
 
             using HttpClient client = CreateClient();
-            HttpContent content = HttpExm.CreateJsonContent(new CreateConversationSpec {Admin = User.Id, Participants = new[] {Admin.Id, User.Id}, Title = "Test"});
+            HttpContent content = HttpExm.CreateJsonContent(new CreateConversationSpec {Participants = new[] {Admin.Id, User.Id}, Title = "Test"});
             var url = "conversations";
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url){Content = content};
             request.AddSignature(client, url, PrivateKeys[User.Id]);
 
             // Act
             
-            request.Content = HttpExm.CreateJsonContent(new CreateConversationSpec {Admin = User.Id, Participants = new[] {Admin.Id, User.Id}, Title = "Test2"});
+            request.Content = HttpExm.CreateJsonContent(new CreateConversationSpec {Participants = new[] {Admin.Id, User.Id}, Title = "Test2"});
 
             HttpResponseMessage response = await client.SendAsync(request);
 

@@ -70,8 +70,8 @@ namespace Aegis.Tests.RestTests
         {
             // Arrange
 
-            var conv1 = new CreateConversationSpec {Admin = User.Id, Participants = new[] {User.Id, Admin.Id}, Title = "conv1"};
-            var conv2 = new CreateConversationSpec {Admin = User2.Id, Participants = new[] {User.Id, User2.Id}, Title = "conv2"};
+            var conv1 = new CreateConversationSpec {Participants = new[] {User.Id, Admin.Id}, Title = "conv1"};
+            var conv2 = new CreateConversationSpec {Participants = new[] {User.Id, User2.Id}, Title = "conv2"};
 
             await CreateConversationAsync(conv1, User.Id);
             await CreateConversationAsync(conv2, User2.Id);

@@ -56,7 +56,6 @@ namespace Aegis.Tests.RestTests
             return new CreateConversationSpec
             {
                 Title = "Test conv",
-                Admin = Persons[0].Id,
                 Participants = Persons.Select(x => x.Id).ToArray()
             };
         }

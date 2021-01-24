@@ -5,9 +5,6 @@ namespace Aegis.Rest.Dto
     public class CreateConversationSpec
     {
         public string Title { get; set; }
-        
-        public Guid Admin { get; set; }
-        
         public Guid[] Participants { get; set; }
     }
 }
